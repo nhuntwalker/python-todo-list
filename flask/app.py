@@ -10,13 +10,13 @@ def home_view():
 
 
 @app.route('/tasks', methods=['GET', 'POST'])
-def tasks_list():
+def all_tasks():
     """."""
     return ""
 
 
 @app.route('/tasks/<id>', methods=['GET', 'PUT', 'DELETE'])
-def edit_task(id):
+def single_task(id):
     """."""
     return ""
 
@@ -35,6 +35,12 @@ def logout():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """."""
+    return ""
+
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
     """."""
     return ""
 
