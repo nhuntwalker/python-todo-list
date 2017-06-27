@@ -10,6 +10,7 @@ class Config(object):
     TESTING = False
     CSRF_ENABLED = True
     SECRET_KEY = os.environ.get('SECRET_KEY', 'beautiful-sunshine')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'todo_flask')
 
 
 class DevelopmentConfig(Config):
