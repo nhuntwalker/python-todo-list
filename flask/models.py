@@ -1,5 +1,11 @@
 """."""
 from app import db
+from sqlalchemy_utils.types.choice import ChoiceType
+
+
+CATEGORIES = [
+    ('W', 'work'), ('S', 'school'), ('P', 'personal')
+]
 
 
 class Task(db.Model):
@@ -10,7 +16,7 @@ class Task(db.Model):
     title = db.Column(
         db.String(length=256, convert_unicode=True), nullable=False
     )
-    category = db.Column(db.String(length=32, convert_unicode=True))
+    category = db.Column(ChoiceType(CATEGORIES))
     due_date = db.Column(db.DateTime())
     complete = db.Column(db.Boolean())
 

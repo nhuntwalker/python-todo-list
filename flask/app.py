@@ -1,5 +1,5 @@
 """."""
-from flask import Flask, json
+from flask import Flask, json, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -16,9 +16,15 @@ from models import Task
 
 @app.route('/')
 def home_view():
-    """."""
+    """The home page for the to do list app."""
+    context = {
+        'title': 'Python To Do | Home',
+        'login': url_for('login'),
+        'register': url_for('register'),
+        'settings': url_for('settings')
+    }
     response = app.response_class(
-        response=json.dumps({'page': 'home_page'}),
+        response=json.dumps(context),
         status=200,
         mimetype='application/json'
     )
