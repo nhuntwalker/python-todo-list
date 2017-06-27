@@ -1,5 +1,5 @@
 """."""
-from flask import Flask
+from flask import Flask, json
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -17,7 +17,12 @@ from models import Task
 @app.route('/')
 def home_view():
     """."""
-    return "Just a test"
+    response = app.response_class(
+        response=json.dumps({'page': 'home_page'}),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @app.route('/tasks', methods=['GET', 'POST'])
