@@ -3,6 +3,7 @@ from flask import Flask, json, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 import os
 import re
+from passlib.hash import pbkdf2_sha256
 
 
 app = Flask(__name__)
@@ -68,8 +69,9 @@ def register():
         if pwd1 != pwd2:
             errors.append("Your passwords don't match.")
         if not errors:
+            hashed = pbkdf2_sha256.hash(pwd1)
             profile = Profile(
-                username=username, email=email, password=pwd1
+                username=username, email=email, password=hashed
             )
             db.session.add(profile)
             db.session.commit()
@@ -105,6 +107,11 @@ def settings():
 def validate_email(email):
     """Ensure that a given email actually looks like an email."""
     is_valid = False
+    if len(email) < 256:
+        pattern = re.compile('[\w]+@[\w]+\.[a-zA-Z]+')
+        matches = pattern.search(pattern)
+        if len(matches.group()) == len(email):
+            is_valid = True
     return is_valid
 
 
