@@ -9,7 +9,7 @@ CATEGORIES = [
 
 
 class Task(db.Model):
-    """."""
+    """The Task model."""
 
     __tablename__ = 'tasks'
     id = db.Column(db.Integer, primary_key=True)
@@ -31,3 +31,7 @@ class Task(db.Model):
         """."""
         fill_string = '<Task {}: {} | completed: {}>'
         return fill_string.format(self.id, self.title[:50], self.complete)
+
+
+class Profile(db.Model):
+    """The Profile model.""

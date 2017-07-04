@@ -31,18 +31,6 @@ def home_view():
     return response
 
 
-@app.route('/tasks', methods=['GET', 'POST'])
-def all_tasks():
-    """."""
-    return ""
-
-
-@app.route('/tasks/<id>', methods=['GET', 'PUT', 'DELETE'])
-def single_task(id):
-    """."""
-    return ""
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     """."""
@@ -57,6 +45,18 @@ def logout():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """."""
+    return ""
+
+
+@app.route('/tasks', methods=['GET', 'POST'])
+def all_tasks():
+    """A list of all the tasks """
+    return ""
+
+
+@app.route('/tasks/<id>', methods=['GET', 'PUT', 'DELETE'])
+def single_task(id):
     """."""
     return ""
 
