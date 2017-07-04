@@ -1,5 +1,5 @@
 """."""
-from flask import Flask, json, url_for
+from flask import Flask, json, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 import os
 import re
@@ -12,7 +12,7 @@ app.config.from_object(
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-from models import Task
+from models import Task, Profile
 
 
 @app.route('/')
@@ -46,13 +46,47 @@ def logout():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """."""
-    return ""
+    """Create a new user with email and password."""
+    errors = []
+    if request.method == "POST":
+        username = request.form['username']
+        email = request.form['email']
+        pwd1 = request.form['password']
+        pwd2 = request.form['password2']
+        if len(username) > 256:
+            msg = "Your username is too long."
+            msg += " Usernames must be ≤ 256 characters in length."
+            errors.append(msg)
+        if db.session.query(Profile).filter(Profile.username == username).count():
+            errors.append("This username is already in use.")
+        if not validate_email(email):
+            errors.append("Please try again with a valid email.")
+        if db.session.query(Profile).filter(Profile.email == email).count():
+            errors.append("An account is already registered with this email.")
+        if not validate_password(pwd1):
+            errors.append("Please try again with a valid password.")
+        if pwd1 != pwd2:
+            errors.append("Your passwords don't match.")
+        if not errors:
+            profile = Profile(
+                username=username, email=email, password=pwd1
+            )
+            db.session.add(profile)
+            db.session.commit()
+            return redirect(url_for('all_tasks'))
+
+    context = {"errors": errors}
+    response = app.response_class(
+        response=json.dumps(context),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @app.route('/tasks', methods=['GET', 'POST'])
 def all_tasks():
-    """A list of all the tasks """
+    """A list of all the tasks."""
     return ""
 
 
@@ -68,13 +102,13 @@ def settings():
     return ""
 
 
-def _validate_email(email):
+def validate_email(email):
     """Ensure that a given email actually looks like an email."""
     is_valid = False
-    pass
+    return is_valid
 
 
-def _validate_password(pwd):
+def validate_password(pwd):
     """Make sure that a given password meets criteria.
 
     At least 8 characters.
