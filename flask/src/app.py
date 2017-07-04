@@ -2,6 +2,7 @@
 from flask import Flask, json, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
+import re
 
 
 app = Flask(__name__)
@@ -66,6 +67,27 @@ def settings():
     """."""
     return ""
 
+
+def _validate_email(email):
+    """Ensure that a given email actually looks like an email."""
+    is_valid = False
+    pass
+
+
+def _validate_password(pwd):
+    """Make sure that a given password meets criteria.
+
+    At least 8 characters.
+    No more than 20 characters.
+    a-z, A-Z, 0-9, -_!?@#$+
+    """
+    is_valid = False
+    if len(pwd) >= 8 and len(pwd) <= 24:
+        pattern = re.compile('[\w@\-\!\?#\$\+]+')
+        matches = pattern.search(pwd)
+        if len(matches.group()) == len(pwd):
+            is_valid = True
+    return is_valid
 
 if __name__ == '__main__':
     app.run()
