@@ -1,12 +1,13 @@
 """."""
-from flask import Flask, jsonify, url_for, request, g
+from datetime import datetime, timedelta
+from flask import (
+    Blueprint, Flask, jsonify, request
+)
 from flask_sqlalchemy import SQLAlchemy
-from flask_httpauth import HTTPBasicAuth
 import jwt
 import os
 from passlib.hash import pbkdf2_sha256
 import re
-from sqlalchemy_utils.types.choice import ChoiceType
 
 
 app = Flask(__name__)
@@ -15,15 +16,13 @@ app.config.from_object(
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-auth = HTTPBasicAuth()
+
+auth_blueprint = Blueprint('auth', __name__)
+app.register_blueprint(auth_blueprint)
 
 # from models import Task, Profile
 
 # MODELS
-
-CATEGORIES = [
-    ('W', 'work'), ('S', 'school'), ('P', 'personal')
-]
 
 
 class Task(db.Model):
@@ -34,7 +33,6 @@ class Task(db.Model):
     title = db.Column(
         db.String(length=256, convert_unicode=True), nullable=False
     )
-    category = db.Column(ChoiceType(CATEGORIES))
     due_date = db.Column(db.DateTime())
     complete = db.Column(db.Boolean())
     profile = db.relationship('Profile', back_populates='tasks')
@@ -43,7 +41,6 @@ class Task(db.Model):
     def __init__(self, title, category=None, due_date=None, complete=False):
         """Construct a new Task."""
         self.title = title
-        self.category = category
         self.due_date = due_date
         self.complete = complete
 
@@ -67,7 +64,7 @@ class Profile(db.Model):
         nullable=False
     )
     password = db.Column(
-        db.String(length=24),
+        db.String(length=256),
         nullable=False
     )
     tasks = db.relationship('Task', back_populates='profile')
@@ -79,11 +76,11 @@ class Profile(db.Model):
         self.password = password
 
     def encode_auth_token(self):
-        """Generate the Auth Token based on this user profile."""
+        """Generate the auth token for this profile."""
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=5),
-                'iat': datetime.datetime.utcnow(),
+                'exp': datetime.utcnow() + timedelta(days=0, seconds=30),
+                'iat': datetime.utcnow(),
                 'sub': self.id
             }
             return jwt.encode(
@@ -92,9 +89,17 @@ class Profile(db.Model):
         except Exception as e:
             return e
 
+    def to_json(self):
+        """Return a JSON representation of a given profile."""
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email
+        }
+
     @staticmethod
     def decode_auth_token(auth_token):
-        """Decode the auth token."""
+        """Given an auth token, decode the auth token and check."""
         try:
             payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
             return payload['sub']
@@ -110,22 +115,23 @@ class Profile(db.Model):
             self.username, self.id, self.email
         )
 
+
 db.Index('usernames', Profile.username, unique=True)
 db.Index('user_emails', Profile.email, unique=True)
 
 # VIEWS
 
 
-@app.route('/api/v1/home')
+@app.route('/api/v1/')
 def home_view():
     """The home page for the to do list app."""
-    context = {
-        'title': 'Python To Do | Home',
-        'login': url_for('login'),
-        'register': url_for('register'),
-        'profile': url_for('profile', user_name='foo')
-    }
-    return jsonify(context), 200
+    pass
+
+
+@app.route('/api/v1/tasks/', methods=['GET', 'POST'])
+def all_tasks():
+    """A list of all the tasks."""
+    pass
 
 
 @app.route('/api/v1/login', methods=['GET', 'POST'])
@@ -142,27 +148,37 @@ def login():
             context['username'] = username
             return jsonify(context), 200
 
-        profile = db.session.query(Profile).filter(
-            Profile.username == username
-        ).all()
-
-        if not profile or not pbkdf2_sha256.verify(password, Profile.password):
+        profile = db.session.query(Profile).filter_by(username=username).one_or_none()
+        if not profile or not pbkdf2_sha256.verify(password, profile.password):
             msg = "The username or password provided is incorrect. "
             msg += "Please try again."
             errors.append(msg)
 
         if not errors:
-
+            auth_token = profile.encode_auth_token()
+            if auth_token:
+                response_context = {
+                    'status': 'success',
+                    'message': 'Successfully logged in.',
+                    'auth_token': auth_token.decode()
+                }
+                return jsonify(response_context), 200
 
     context["errors"] = errors
     return jsonify(context), 200
 
 
+auth_blueprint.add_url_rule(
+    '/api/v1/login',
+    view_func=login,
+    methods=['GET', 'POST']
+)
+
+
 @app.route('/api/v1/logout')
-@auth.login_required
 def logout():
-    """."""
-    return ""
+    """Remove authentication from the request."""
+    pass
 
 
 @app.route('/api/v1/register', methods=['GET', 'POST'])
@@ -178,7 +194,9 @@ def register():
             msg = "Your username is too long."
             msg += " Usernames must be ≤ 256 characters in length."
             errors.append(msg)
-        if db.session.query(Profile).filter(Profile.username == username).count():
+        if db.session.query(Profile).filter(
+            Profile.username == username
+        ).count():
             errors.append("This username is already in use.")
         if not validate_email(email):
             errors.append("Please try again with a valid email.")
@@ -195,31 +213,60 @@ def register():
             )
             db.session.add(profile)
             db.session.commit()
-            return jsonify({'username': profile.username}), 201
+
+            auth_token = profile.encode_auth_token()
+            response_context = {
+                'status': 'success',
+                'message': 'Successfully registered.',
+                'auth_token': auth_token.decode()
+            }
+            return jsonify(response_context), 201
 
     context = {"errors": errors}
     return jsonify(context), 200
 
 
-@app.route('/api/v1/tasks/', methods=['GET', 'POST'])
-@auth.login_required
-def all_tasks():
-    """A list of all the tasks."""
-    return ""
+auth_blueprint.add_url_rule(
+    '/api/v1/register',
+    view_func=register,
+    methods=['GET', 'POST']
+)
 
 
 @app.route('/api/v1/tasks/<task_id>', methods=['GET', 'PUT', 'DELETE'])
-@auth.login_required
 def single_task(id):
-    """."""
-    return ""
+    """Detail for an individual task."""
+    pass
 
 
-@app.route('/api/v1/accounts/<user_name>', methods=['GET', 'POST'])
-@auth.login_required
-def profile(user_name):
+@app.route('/api/v1/profile', methods=['GET', 'POST'])
+def profile():
     """."""
-    return ""
+
+    auth_token = request.headers.get('Authorization')
+    if request.method == "GET":
+        if auth_token:
+            auth_id = Profile.decode_auth_token(auth_token)
+            import pdb; pdb.set_trace()
+            if not isinstance(auth_id, str):
+                profile = db.session.query(Profile).get(auth_id)
+                response_context = {
+                    'status': 'success',
+                    'data': profile.to_json()
+                }
+                return jsonify(response_context), 200
+        else:
+            response_context = {
+                'status': 'fail',
+                'message': 'Provide a valid auth token.'
+            }
+            return jsonify(response_context), 401
+
+auth_blueprint.add_url_rule(
+    '/api/v1/profile',
+    view_func=profile,
+    methods=['GET', 'POST']
+)
 
 
 def validate_email(email):
@@ -227,7 +274,7 @@ def validate_email(email):
     is_valid = False
     if len(email) < 256:
         pattern = re.compile('[\w]+@[\w]+\.[a-zA-Z]+')
-        matches = pattern.search(pattern)
+        matches = pattern.search(email)
         if len(matches.group()) == len(email):
             is_valid = True
     return is_valid
@@ -246,18 +293,6 @@ def validate_password(pwd):
         matches = pattern.search(pwd)
         if len(matches.group()) == len(pwd):
             is_valid = True
-    return is_valid
-
-
-@auth.verify_password
-def validate_credentials(username, password):
-    """Take in a username, password, and return whether the combo works."""
-    is_valid = False
-    user = db.session.query(Profile).filter_by(username=username).first()
-    if user:
-        is_valid = pbkdf2_sha256.verify(password, user.password)
-        if is_valid:
-            g.user = user
     return is_valid
 
 if __name__ == '__main__':
