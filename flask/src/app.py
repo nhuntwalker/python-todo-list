@@ -2,6 +2,7 @@
 from flask import Flask, jsonify, url_for, request, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_httpauth import HTTPBasicAuth
+import jwt
 import os
 from passlib.hash import pbkdf2_sha256
 import re
@@ -77,6 +78,31 @@ class Profile(db.Model):
         self.email = email
         self.password = password
 
+    def encode_auth_token(self):
+        """Generate the Auth Token based on this user profile."""
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=5),
+                'iat': datetime.datetime.utcnow(),
+                'sub': self.id
+            }
+            return jwt.encode(
+                payload, app.config.get('SECRET_KEY'), algorithm='HS256'
+            )
+        except Exception as e:
+            return e
+
+    @staticmethod
+    def decode_auth_token(auth_token):
+        """Decode the auth token."""
+        try:
+            payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
+            return payload['sub']
+        except jwt.ExpiredSignatureError:
+            return 'Signature expired. Please log in again.'
+        except jwt.InvalidTokenError:
+            return 'Invalid token. Please log in again.'
+
     def __repr__(self):
         """String representation."""
         fill_string = '<{} id:{} email:{}>'
@@ -126,7 +152,7 @@ def login():
             errors.append(msg)
 
         if not errors:
-            
+
 
     context["errors"] = errors
     return jsonify(context), 200
