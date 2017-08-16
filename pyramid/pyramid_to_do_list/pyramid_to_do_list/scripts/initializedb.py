@@ -5,7 +5,7 @@ import transaction
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
-    )
+)
 
 from pyramid.scripts.common import parse_vars
 
@@ -14,7 +14,7 @@ from ..models import (
     get_engine,
     get_session_factory,
     get_tm_session,
-    )
+)
 from ..models import MyModel
 
 
@@ -32,6 +32,7 @@ def main(argv=sys.argv):
     options = parse_vars(argv[2:])
     setup_logging(config_uri)
     settings = get_appsettings(config_uri, options=options)
+    settings['sqlalchemy.url'] = os.environ.get('DATABASE_URL')
 
     engine = get_engine(settings)
     Base.metadata.create_all(engine)

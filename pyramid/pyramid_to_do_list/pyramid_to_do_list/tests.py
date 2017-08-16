@@ -1,6 +1,7 @@
 import unittest
 import transaction
 
+import os
 from pyramid import testing
 
 
@@ -9,9 +10,10 @@ def dummy_request(dbsession):
 
 
 class BaseTest(unittest.TestCase):
+
     def setUp(self):
         self.config = testing.setUp(settings={
-            'sqlalchemy.url': 'sqlite:///:memory:'
+            'sqlalchemy.url': os.environ.get('TEST_DB_URL')
         })
         self.config.include('.models')
         settings = self.config.get_settings()
@@ -20,7 +22,7 @@ class BaseTest(unittest.TestCase):
             get_engine,
             get_session_factory,
             get_tm_session,
-            )
+        )
 
         self.engine = get_engine(settings)
         session_factory = get_session_factory(self.engine)
