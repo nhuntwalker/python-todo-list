@@ -9,6 +9,8 @@ from paste.deploy import loadapp
 from logging.config import fileConfig
 from sqlalchemy.engine.base import Engine
 
+from pyramid_to_do_list.models import Base
+
 
 try:
     # if pylons app already in, don't create a new app
@@ -24,13 +26,14 @@ except:
 
 
 # customize this section for non-standard engine configurations.
-meta = __import__("%s.model.meta" % wsgi_app.config['pylons.package']).model.meta
+# meta = __import__("%s.model.meta" % wsgi_app.config['pylons.package']).model.meta
+meta = __import__("%s.models.meta" % wsgi_app.registry.package_name).models.meta
 
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = Base.metadata
 
 
 def run_migrations_offline():
@@ -60,8 +63,9 @@ def run_migrations_online():
 
     """
     # specify here how the engine is acquired
-    # engine = meta.engine
-    raise NotImplementedError("Please specify engine connectivity here")
+    import pdb; pdb.set_trace() # need to figure out where to get the proper engine object from
+    engine = meta.engine
+    # raise NotImplementedError("Please specify engine connectivity here")
 
     with engine.connect() as connection:
         context.configure(
