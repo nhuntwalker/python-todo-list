@@ -1,0 +1,3 @@
+[run]
+source = pyramid_to_do_list
+omit = pyramid_to_do_list/test*
