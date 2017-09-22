@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+[requires]
+python_version = "3.6"
+[packages]
+
+alembic = "*"
+click = "*"
+Flask = "*"
+Flask-HTTPAuth = "*"
+Flask-Migrate = "*"
+Flask-Script = "*"
+Flask-SQLAlchemy = "*"
+itsdangerous = "*"
+Jinja2 = "*"
+Mako = "*"
+MarkupSafe = "*"
+passlib = "*"
+psycopg2 = "*"
+python-dateutil = "*"
+python-editor = "*"
+SQLAlchemy = "*"
+SQLAlchemy-Utils = "*"
+Werkzeug = "*"
+
+
