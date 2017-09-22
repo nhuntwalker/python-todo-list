@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 from app import app, db
+from flask import jsonify
 
 
 @app.route("/")
 def home():
     """Return the home page."""
-    pass
+    data = {
+        "title": "Home"
+    }
+    return jsonify(data)
 
 
 @app.route("/api/v1/")
