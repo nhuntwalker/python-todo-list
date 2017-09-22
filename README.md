@@ -16,6 +16,8 @@ DB: postgres
 | `PUT` | `/api/v1/tasks/<id>` | update a user's task |
 | `DELETE` | `/api/v1/tasks/<id>` | delete a user's task |
 | `POST` | `/api/v1/profiles` | create a new user |
+| `POST` | `/api/v1/login` | log a user in |
+| `GET` | `/api/v1/logout` | log a user out |
 | `GET` | `/api/v1/profiles/<id>` | detail for one user |
 | `PUT` | `/api/v1/profiles/<id>` | update info for one user |
 | `DELETE` | `/api/v1/profiles/<id>` | delete one user |
@@ -58,3 +60,4 @@ Sources:
 - https://www.tutorialspoint.com/flask/flask_url_building.htm
 - https://blog.miguelgrinberg.com/post/restful-authentication-with-flask
 - https://realpython.com/blog/python/token-based-authentication-with-flask/
+- http://blog.luisrei.com/articles/flaskrest.html
