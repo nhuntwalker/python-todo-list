@@ -61,3 +61,4 @@ Sources:
 - https://blog.miguelgrinberg.com/post/restful-authentication-with-flask
 - https://realpython.com/blog/python/token-based-authentication-with-flask/
 - http://blog.luisrei.com/articles/flaskrest.html
+- https://flask-migrate.readthedocs.io/en/latest/
