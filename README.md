@@ -49,11 +49,7 @@ class Profile
 
 ## Flask
 
-```
-$ python manage.py db init
-$ python manage.py db upgrade
-$ python manage.py runserver
-```
+Built with [sloria](https://github.com/sloria)'s Flask cookiecutter
 
 Sources:
 - https://realpython.com/blog/python/flask-by-example-part-1-project-setup/ (and subsequent posts)
