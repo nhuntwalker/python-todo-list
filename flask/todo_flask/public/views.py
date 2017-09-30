@@ -9,7 +9,7 @@ from todo_flask.user.forms import RegisterForm
 from todo_flask.user.models import User
 from todo_flask.utils import flash_errors
 
-blueprint = Blueprint('public', __name__, static_folder='../static')
+blueprint = Blueprint('public', __name__)
 
 
 @login_manager.user_loader
@@ -54,10 +54,3 @@ def register():
     else:
         flash_errors(form)
     return render_template('public/register.html', form=form)
-
-
-@blueprint.route('/about/')
-def about():
-    """About page."""
-    form = LoginForm(request.form)
-    return render_template('public/about.html', form=form)
